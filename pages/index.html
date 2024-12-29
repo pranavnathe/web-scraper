@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+        #logs {
+            max-width: 600px;
+            width: 100%;
+            height: 300px;
+            overflow-y: auto;
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin-top: 20px;
+            background: #f9f9f9;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        #logs div {
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <button id="run-script">Click here to run the script.</button>
+    <div id="logs"></div>
+    <script>
+        document.getElementById("run-script").addEventListener("click", () => {
+            const logsContainer = document.getElementById("logs");
+            logsContainer.innerHTML = ""; // Clear logs
+
+            const eventSource = new EventSource("/events");
+
+            eventSource.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                const logEntry = document.createElement("div");
+                logEntry.textContent = data.message;
+                logsContainer.appendChild(logEntry);
+
+                // Redirect after script completion
+                if (data.message.includes("Redirecting to results page")) {
+                    eventSource.close();
+                    setTimeout(() => {
+                        window.location.href = "/result.html";
+                    }, 1000);
+                }
+            };
+
+            eventSource.onerror = () => {
+                const errorEntry = document.createElement("div");
+                errorEntry.textContent = "Error occurred while running the script.";
+                logsContainer.appendChild(errorEntry);
+                eventSource.close();
+            };
+        });
+    </script>
+</body>
+</html>

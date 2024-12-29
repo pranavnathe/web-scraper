@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Results</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        h1, p, ul, div {
+            text-align: center;
+        }
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        li {
+            margin: 5px 0;
+        }
+        pre {
+            background: #f4f4f4;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+            text-align: left;
+        }
+        a {
+            display: block;
+            margin-top: 20px;
+            text-align: center;
+            color: blue;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <h1>Scraped Results</h1>
+    <div id="content">
+        <p>Fetching data...</p>
+    </div>
+    <a href="/">Click here to run the query again.</a>
+
+    <script>
+        async function fetchResults() {
+            const contentDiv = document.getElementById("content");
+            try {
+                const response = await fetch('/api/results');
+                const data = await response.json();
+
+                if (data.timestamp) {
+                    contentDiv.innerHTML = "";
+
+                    const summary = document.createElement("p");
+                    summary.textContent = `These are the most happening topics as on ${new Date(data.timestamp).toLocaleString()}`;
+                    contentDiv.appendChild(summary);
+
+                    const trendingTopics = document.createElement("ul");
+                    data.trends.forEach((topic, index) => {
+                        const li = document.createElement("li");
+                        li.textContent = `- Name of trend${index + 1}: ${topic}`;
+                        trendingTopics.appendChild(li);
+                    });
+                    contentDiv.appendChild(trendingTopics);
+
+                    const ipAddress = document.createElement("p");
+                    ipAddress.textContent = `The IP address used for this query was ${data.ipAddress}.`;
+                    contentDiv.appendChild(ipAddress);
+
+                    const jsonHeader = document.createElement("h2");
+                    jsonHeader.textContent = "Here’s a JSON extract of this record from the MongoDB:";
+                    contentDiv.appendChild(jsonHeader);
+
+                    const rawJson = document.createElement("pre");
+                    rawJson.textContent = JSON.stringify(data, null, 2);
+                    contentDiv.appendChild(rawJson);
+                } else {
+                    contentDiv.innerHTML = "<p>No data available.</p>";
+                }
+            } catch (error) {
+                console.error("Error fetching results:", error);
+                contentDiv.innerHTML = "<p>Error fetching data. Please try again later.</p>";
+            }
+        }
+
+        fetchResults();
+    </script>
+</body>
+</html>
